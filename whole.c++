@@ -1,235 +1,155 @@
 #include <iostream>
+#include <climits>
+#include <vector>
 using namespace std;
 
-// AVL Tree Node
-struct Node {
-    int data;
-    Node* left;
-    Node* right;
-    int height;
-};
+#define V 6 // Number of locations
 
-// Function to calculate the height of a node
-int height(Node* node) {
-    if (node == NULL)
-        return 0;
-    return node->height;
-}
-
-// Function to get the maximum of two integers
-int max(int a, int b) {
-    return (a > b) ? a : b;
-}
+string places[V] = {"Gate", "Library", "Hostel", "Canteen", "Auditorium", "Admin"};
 
 
-// Create a new AVL tree node
-Node* newNode(int key) {
-    Node* node = new Node;
-    node->data = key;
-    node->left = nullptr;
-    node->right = nullptr;
-    node->height = 1;
-    return node;
-}
-Node* newNode(int key){
-    Node* node=
-
+int minDistance(int dist[], bool visited[]) {
     
-    ssteynre tem.out,println
+    int min=INT_MAX, index=-1;
+    for (int v=0; v<V; v++)
+        if (!visited[v] && dist[v]<=min)
+            min=dist[v], index=v;
+    return index;
 }
 
-// Right rotate subtree rooted with y
-Node* rightRotate(Node* y) {
-    Node* x = y->left;
-    Node* T2 = x->right;
 
-    // Perform rotation
-    x->right = y;
-    y->left = T2;
+// Dijkstra to get distances and parent path
+void dijkstra(int graph[V][V], int start, int dist[], int parent[]) {
+    bool visited[V]={false};
 
-    // Update heights
-    y->height = max(height(y->left), height(y->right)) + 1;
-    x->height = max(height(x->left), height(x->right)) + 1;
-
-    // Return new root
-    return x;
-}
-
-// Left rotate subtree rooted with x
-Node* leftRotate(Node* x) {
-    Node* y = x->right;
-    Node* T2 = y->left;
-
-    // Perform rotation
-    y->left = x;
-    x->right = T2;
-
-    // Update heights
-    x->height = max(height(x->left), height(x->right)) + 1;
-    y->height = max(height(y->left), height(y->right)) + 1;
-
-    // Return new root
-    return y;
-}
-
-// Get balance factor of a node
-int balanceFactor(Node* node) {
-    if (node == NULL)
-        return 0;
-    return height(node->left) - height(node->right);
-}
-
-// Insert a key into the AVL tree
-Node* insert(Node* node, int key) {
-    // Perform standard BST insertion
-    if (node == NULL)
-        return newNode(key);
-
-    if (key < node->data)
-        node->left = insert(node->left, key);
-    else if (key > node->data)
-        node->right = insert(node->right, key);
-    else
-        return node; // Equal keys not allowed
-
-    // Update height
-    node->height = 1 + max(height(node->left), height(node->right));
-
-    // Get balance factor
-    int balance = balanceFactor(node);
-
-    // Rebalance if needed
-
-    // Left Left
-    if (balance > 1 && key < node->left->data)
-        return rightRotate(node);
-
-    // Right Right
-    if (balance < -1 && key > node->right->data)
-        return leftRotate(node);
-
-    // Left Right
-    if (balance > 1 && key > node->left->data) {
-        node->left = leftRotate(node->left);
-        return rightRotate(node);
+    for (int i=0; i<V; i++) {
+        dist[i]=INT_MAX;
+        parent[i]=-1;
     }
+    dist[start]=0;
 
-    // Right Left
-    if (balance < -1 && key < node->right->data) {
-        node->right = rightRotate(node->right);
-        return leftRotate(node);
-    }
+    for (int count=0; count< V-1; count++) {
+        int u=minDistance(dist, visited);
+        if (u==-1) break;
+        visited[u]=true;
 
-    return node;
-}
-
-// Function to find the node with the minimum key value
-Node* minValueNode(Node* node) {
-    Node* current = node;
-    while (current->left != nullptr)
-        current = current->left;
-    return current;
-}
-
-// Delete a node from the AVL tree
-Node* deleteNode(Node* root, int key) {
-    // Perform standard BST deletion
-    if (root == NULL)
-        return root;
-
-    if (key < root->data)
-        root->left = deleteNode(root->left, key);
-    else if (key > root->data)
-        root->right = deleteNode(root->right, key);
-    else {
-        // Node with one or no child
-        if (root->left == NULL || root->right == NULL) {
-            Node* temp = root->left ? root->left : root->right;
-
-            if (temp == NULL) {
-                temp = root;
-                root = NULL;
-            } else
-                *root = *temp;
-
-            delete temp;
-        } else {
-            // Node with two children
-            Node* temp = minValueNode(root->right);
-            root->data = temp->data;
-            root->right = deleteNode(root->right, temp->data);
+        for (int v=0; v<V; v++) {
+            if (!visited[v] && graph[u][v] && dist[u]!=INT_MAX && dist[u]+graph[u][v] < dist[v]) {
+                dist[v]=dist[u] + graph[u][v];
+                parent[v]=u;
+            }
         }
     }
-
-    if (root == NULL)
-        return root;
-
-    // Update height
-    root->height = 1 + max(height(root->left), height(root->right));
-
-    // Get balance
-    int balance = balanceFactor(root);
-
-    // Rebalance if needed
-
-    // Left Left
-    if (balance > 1 && balanceFactor(root->left) >= 0)
-        return rightRotate(root);
-
-    // Left Right
-    if (balance > 1 && balanceFactor(root->left) < 0) {
-        root->left = leftRotate(root->left);
-        return rightRotate(root);
-    }
-
-    // Right Right
-    if (balance < -1 && balanceFactor(root->right) <= 0)
-        return leftRotate(root);
-
-    // Right Left
-    if (balance < -1 && balanceFactor(root->right) > 0) {
-        root->right = rightRotate(root->right);
-        return leftRotate(root);
-    }
-
-    return root;
 }
 
-// In-order traversal
-void inOrder(Node* root) {
-    if (root != NULL) {
-        inOrder(root->left);
-        cout << root->data << " ";
-        inOrder(root->right);
-    }
+// Print path from start to target
+void printPath(int parent[], int j) {
+    if (parent[j]==-1)
+        return;
+    printPath(parent, parent[j]);
+    cout<<" -> "<<places[j];
+}
+
+
+// Display all locations
+void displayLocations() {
+    cout<<"\nLocations:\n";
+    for (int i=0; i<V; i++)
+        cout<<i<<". "<<places[i]<<"\n";
+}
+
+
+// Find shortest distances from a location
+void shortestFromLocation(int graph[V][V]) {
+    int start;
+    displayLocations();
+    cout<<"Enter start location: ";
+    cin>>start;
+
+    int dist[V], parent[V];
+    dijkstra(graph, start, dist, parent);
+
+    cout<<"\nShortest distances from "<<places[start]<<":\n";
+    for (int i=0; i<V; i++)
+        cout<<places[start]<<" -> "<<places[i]<<" = "<<dist[i]<<" units\n";
+}
+
+
+// Find shortest path between two locations
+void shortestPathBetween(int graph[V][V]) {
+    int start, end;
+    displayLocations();
+    cout<<"Enter start location: ";
+    cin>>start;
+    cout<<"Enter destination location: ";
+    cin>>end;
+
+    int dist[V], parent[V];
+    dijkstra(graph, start, dist, parent);
+
+    cout<<"\nShortest path from "<<places[start]<<" to "<<places[end]<<":\n";
+    cout<< places[start];
+    printPath(parent, end);
+    cout<<"\nDistance: "<<dist[end]<<" units\n";
+}
+
+// Update distance between two locations
+void updateDistance(int graph[V][V]) {
+    int loc1, loc2, distance;
+    displayLocations();
+    cout<<"Enter first location: ";
+    cin>>loc1;
+    cout<<"Enter second location: ";
+    cin>>loc2;
+    cout<<"Enter new distance (0 if no direct path): ";
+    cin>>distance;
+
+    graph[loc1][loc2]=distance;
+    graph[loc2][loc1]=distance; // Since undirected graph
+    cout<<"Distance updated successfully!\n";
 }
 
 int main() {
-    Node* root = nullptr;
+    int graph[V][V]={
+        {0, 2, 4, 0, 0, 0},
+        {2, 0, 1, 7, 0, 0},
+        {4, 1, 0, 3, 5, 0},
+        {0, 7, 3, 0, 2, 6},
+        {0, 0, 5, 2, 0, 4},
+        {0, 0, 0, 6, 4, 0}
+    };
 
-    root = insert(root, 63);
-    root = insert(root, 9);
-    root = insert(root, 19);
-    root = insert(root, 27);
-    root = insert(root, 18);
-    root = insert(root, 108);
-    root = insert(root, 99);
-    root = insert(root, 81);
+    char cont='y';
 
-    cout << "In-order traversal of the AVL tree: ";
-    inOrder(root);
-    cout << endl;
+    while(cont=='y' || cont=='Y') {
+        int choice;
+        cout<<"\n--- MENU ---\n";
+        cout<<"1. Display all locations\n";
+        cout<<"2. Find shortest distances from a location\n";
+        cout<<"3. Find shortest path between 2 locations\n";
+        cout<<"4. Update distance between two locations\n";
+        cout<<"5. Exit\n";
+        cout<<"Enter choice: ";
+        cin>>choice;
 
-    root = deleteNode(root, 81);
-    root = deleteNode(root, 99);
-    root = deleteNode(root, 108);
-    root = deleteNode(root, 18);
-    root = deleteNode(root, 27);
-    root = deleteNode(root, 19);
+        switch(choice) {
+            case 1: displayLocations(); break;
+            case 2: shortestFromLocation(graph); break;
+            case 3: shortestPathBetween(graph); break;
+            case 4: updateDistance(graph); break;
+            case 5: 
+                cout<<"Exiting...\n"; 
+                cout<<"Thank you for using the Campus Navigation System. Have a great day!\n";
+                return 0; 
+            default: 
+                cout<<"Invalid choice! Try again.\n";
+        }
 
-    cout << "In-order traversal of the AVL tree after deletions: ";
-    inOrder(root);
-    cout << endl;
+        cout<<"\nDo you want to continue (y/n)? ";
+        cin>>cont;
+    }
 
+
+    cout<<"Thank you for using the Campus Navigation System. Have a great day!\n";
     return 0;
 }
